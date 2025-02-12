@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import os
 import calendar
 from dateutil.relativedelta import relativedelta
+import pytz
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -23,9 +24,9 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    currency = db.Column(db.String(10), default='₹')
+    currency = db.Column(db.String(10), default='$')
     date_format = db.Column(db.String(20), default='DD/MM/YYYY')
-    timezone = db.Column(db.String(50), default='Asia/Kolkata')
+    timezone = db.Column(db.String(50), default='UTC')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -292,7 +293,8 @@ def dashboard():
         expenses_trend=expenses_trend,
         category_labels=category_labels,
         category_amounts=category_amounts,
-        categories=Category.query.filter_by(user_id=current_user.id).all()
+        categories=Category.query.filter_by(user_id=current_user.id).all(),
+        user=current_user
     )
 
 @app.route('/transactions')
@@ -325,7 +327,8 @@ def transactions():
         transactions=transactions,
         income_categories=income_categories,
         expense_categories=expense_categories,
-        datetime=datetime
+        datetime=datetime,
+        user=current_user
     )
 
 @app.route('/transactions/add', methods=['POST'])
@@ -391,7 +394,7 @@ def edit_transaction(id):
 def budgets():
     budgets = Budget.query.filter_by(user_id=current_user.id).all()
     categories = Category.query.filter_by(user_id=current_user.id).all()
-    return render_template('budgets.html', budgets=budgets, categories=categories)
+    return render_template('budgets.html', budgets=budgets, categories=categories, user=current_user)
 
 @app.route('/budgets/add', methods=['POST'])
 @login_required
@@ -630,7 +633,8 @@ def reports():
                          budget_data=budget_data,
                          actual_data=actual_data,
                          savings_labels=savings_labels,
-                         savings_data=savings_data)
+                         savings_data=savings_data,
+                         user=current_user)
 
 @app.route('/reports/export')
 @login_required
@@ -700,7 +704,7 @@ def settings():
         return redirect(url_for('settings'))
     
     return render_template('settings.html',
-                         currencies=['₹'],
+                         currencies=['$', '€', '£', '¥', '₹'],
                          date_formats=['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'],
                          timezones=['Asia/Kolkata', 'UTC', 'US/Pacific', 'US/Eastern', 'Europe/London'])
 

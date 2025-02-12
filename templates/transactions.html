@@ -79,7 +79,7 @@
                     <td class="px-4 py-3">{{ transaction.description }}</td>
                     <td class="px-4 py-3">{{ transaction.category.name }}</td>
                     <td class="px-4 py-3 font-medium {% if transaction.type == 'expense' %}text-red-500{% else %}text-green-500{% endif %}">
-                        {% if transaction.type == 'expense' %}-{% endif %}₹{{ "%.2f"|format(transaction.amount) }}
+                        {% if transaction.type == 'expense' %}-{% endif %}{{ current_user.currency }}{{ "%.2f"|format(transaction.amount) }}
                     </td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 text-xs font-medium {% if transaction.type == 'expense' %}text-red-700 bg-red-100{% else %}text-green-700 bg-green-100{% endif %} rounded-full">
